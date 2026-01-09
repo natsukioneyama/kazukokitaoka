@@ -96,6 +96,7 @@ body {
 
 .brand .role{
   font-size: .7rem;
+  font-weight: 600;
   letter-spacing: .05em;
 }
 
@@ -505,6 +506,7 @@ pointer-events: auto;
 
 .gm-name .gm-subtitle{
   font-size: .7rem;
+  font-weight: 600;
   letter-spacing: 0.04em;
 }
 

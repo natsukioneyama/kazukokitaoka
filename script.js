@@ -1086,12 +1086,12 @@ function openAt(index) {
 
   // ここを増やせば全ページ一発で反映されます
   const links = [
-    { href: 'index.html',    label: 'Overview'  },
-    { href: 'editorial.html',label: 'Editorial' },
+    { href: 'index.html',    label: 'overview'  },
+    { href: 'editorial.html',label: 'editorial' },
     //{ href: 'beauty.html',   label: 'BEAUTY'    },//
-    { href: 'video.html',   label: 'Advertising & Film'  },
-    { href: 'info.html',     label: 'Info'      },
-    { href: 'mailto:kazuko81617@gmail.com', label: 'Contact', external: true }
+    { href: 'video.html',   label: 'advertising & film'  },
+    { href: 'info.html',     label: 'info'      },
+    { href: 'mailto:kazuko81617@gmail.com', label: 'contact', external: true }
   ];
 
   const path = location.pathname.split('/').pop();
