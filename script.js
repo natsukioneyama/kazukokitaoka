@@ -1089,7 +1089,7 @@ function openAt(index) {
     { href: 'index.html',    label: 'overview'  },
     { href: 'editorial.html',label: 'editorial' },
     //{ href: 'beauty.html',   label: 'BEAUTY'    },//
-    { href: 'video.html',   label: 'advertising & film'  },
+    { href: 'video.html',   label: 'advertising'  },
     { href: 'info.html',     label: 'info'      },
     { href: 'mailto:kazuko81617@gmail.com', label: 'contact', external: true }
   ];
