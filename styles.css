@@ -477,11 +477,12 @@ pointer-events: auto;
 /* 左上：署名だけ分離（.gm-caption の外に見せるため fixed） */
 .gm-name{
   position: fixed;
-  top: 3px;
+  top: 8px;
   left: 5px;
   z-index: 10000;
   margin: 0;
   pointer-events: none;
+  line-height: 0.5;
 }
 
 .gm-main {
@@ -505,6 +506,11 @@ pointer-events: auto;
 .gm-name .gm-subtitle{
   font-size: .7rem;
   letter-spacing: 0.04em;
+}
+
+.gm-name .gm-main,
+.gm-name .gm-subtitle {
+  display: block;
 }
 
 /* 左下キャプション */
