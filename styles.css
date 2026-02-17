@@ -709,8 +709,10 @@ pointer-events: auto;
   }
 }
 
+
+
 /* ==========================================================================
-   Video sizing (default)  ※B案：ここに集約（数値変更なし）
+   Video sizing (default)
    ========================================================================== */
 
 /* 動画本体（gm 内）: gm-frame の中に必ず収める */
@@ -754,13 +756,32 @@ pointer-events: auto;
     object-fit: contain;
   }
 
+  /* 横動画：幅優先で最大表示 */
+  .gm:not(.is-portrait-video) .gm-video-wrap{
+    max-width: 92vw;
+    margin: 0 auto;
+  }
+
+  .gm:not(.is-portrait-video) .gm-video-wrap video{
+    width: 100%;
+    height: auto;
+    max-width: 92vw;
+    max-height: 100%;
+    object-fit: contain;
+  }
+
+  /* 縦動画：高さ優先 */
   .gm.is-portrait-video .gm-video-wrap{
     max-width: 72vw;
     margin: 0 auto;
   }
 
-  .gm.is-portrait-video{
-    --gm-footer-h: 190px;
+  .gm.is-portrait-video .gm-video-wrap video{
+    height: 100%;
+    width: auto;
+    max-height: 100%;
+    max-width: 100%;
+    object-fit: contain;
   }
 }
 
