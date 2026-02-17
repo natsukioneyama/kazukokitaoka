@@ -831,3 +831,9 @@ pointer-events: auto;
   }
 }
 
+
+
+/* Info page only: header background */
+.page-info .topbar{
+  background: #f7f7f5;
+}
