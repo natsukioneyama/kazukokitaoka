@@ -68,7 +68,7 @@
     // 両方空ならスキップ
     if (!title) return;
 
-    const key = `${title}|||${line1}`;
+    const key = meta.dataset.group || `${title}|||${line1}`;
 
     if (!groups.has(key)) {
       groups.set(key, { title, line1, line2, members: [] });
