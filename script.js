@@ -351,6 +351,39 @@
 })();
 
 
+/* =========================================================
+   Background scroll lock (shared helper, iOS Safari-safe)
+   - Lightbox の openAt()/closeModal() (両ブロック共通) から呼び出す
+   ========================================================= */
+let scrollLocked = false;
+let savedScrollY = 0;
+
+function lockPageScroll() {
+  if (scrollLocked) return;
+  scrollLocked = true;
+  savedScrollY = window.scrollY || window.pageYOffset || 0;
+
+  document.body.style.position = 'fixed';
+  document.body.style.top = `-${savedScrollY}px`;
+  document.body.style.left = '0';
+  document.body.style.right = '0';
+  document.body.style.width = '100%';
+  document.body.style.overflow = 'hidden';
+}
+
+function unlockPageScroll() {
+  if (!scrollLocked) return;
+  scrollLocked = false;
+
+  document.body.style.position = '';
+  document.body.style.top = '';
+  document.body.style.left = '';
+  document.body.style.right = '';
+  document.body.style.width = '';
+  document.body.style.overflow = '';
+
+  window.scrollTo(0, savedScrollY);
+}
 
 
 
@@ -551,6 +584,8 @@ function resetMedia() {
 }
 
 function closeModal() {
+  unlockPageScroll();
+
   gm.setAttribute('aria-hidden', 'true');
   resetMedia();
   document.body.classList.remove('lb-open');
@@ -564,6 +599,8 @@ function closeModal() {
 }
 
 function openAt(index) {
+  lockPageScroll();
+
   currentIndex = (index + thumbItems.length) % thumbItems.length;
 
   const item = thumbItems[currentIndex];
@@ -1038,6 +1075,8 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   function closeModal() {
+  unlockPageScroll();
+
   gm.setAttribute('aria-hidden', 'true');
   resetMedia();
   document.body.classList.remove('lb-open');
@@ -1051,6 +1090,8 @@ document.addEventListener('DOMContentLoaded', () => {
 }
 
 function openAt(index) {
+  lockPageScroll();
+
   currentIndex = (index + thumbItems.length) % thumbItems.length;
 
   const item = thumbItems[currentIndex];
