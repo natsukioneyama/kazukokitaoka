@@ -1,9 +1,108 @@
   /* =========================================================
-  OVERVIEW SITE (PART 1/4)
+  PORTFOLIO GRID (PART 1/4)
+  0) Data -> DOM: portfolio-data.js の PORTFOLIO_PROJECTS から
+     #grid の data-view に応じた .jl-item を生成する
   1) Justified Layout: items収集 / render / resize
   2) Grouping + Caption: data-title 単位でグループ化して先頭にだけキャプション
   3) Group Highlight: PC=hover / Touch=1st tap highlight, 2nd tap -> lightboxへ
   ========================================================= */
+
+  /* =========================
+     0) Portfolio data -> DOM 生成
+     - #grid の data-view (例: "overview" / "editorial") に応じて、
+       PORTFOLIO_PROJECTS から対象プロジェクトだけを抽出し、
+       プロジェクト配列順 → 各プロジェクトのmedia配列順のまま
+       .jl-item を生成して #grid に流し込む。
+     - 以降の Justified Layout / Grouping / Lightbox は、
+       ここで生成された要素だけを対象に動作する。
+     ========================= */
+
+  function buildPortfolioGrid(gridEl) {
+    const projects = window.PORTFOLIO_PROJECTS;
+    if (!Array.isArray(projects)) {
+      throw new Error(
+        'portfolio-data.js が読み込めていません（window.PORTFOLIO_PROJECTS が見つかりません）。' +
+        '<script src="portfolio-data.js"> が script.js より前に読み込まれているか確認してください。'
+      );
+    }
+
+    // データ検証：重複ID / 不明な media type / サイズ欠落をコンソールに警告
+    const seenIds = new Set();
+    projects.forEach((project) => {
+      if (seenIds.has(project.id)) {
+        console.error(`[portfolio-data] project id が重複しています: "${project.id}"`);
+      }
+      seenIds.add(project.id);
+
+      (project.media || []).forEach((m, i) => {
+        if (m.type !== 'image' && m.type !== 'video') {
+          console.error(`[portfolio-data] project "${project.id}" media[${i}] の type が不明です: "${m.type}"`);
+        }
+        if (!m.dataW || !m.dataH) {
+          console.error(`[portfolio-data] project "${project.id}" media[${i}] に dataW/dataH がありません。`);
+        }
+      });
+    });
+
+    const view = gridEl.dataset.view;
+    const knownCategories = Array.from(new Set(projects.map((p) => p.category)));
+
+    let targetProjects;
+    if (view === 'overview') {
+      targetProjects = projects;
+    } else if (knownCategories.includes(view)) {
+      targetProjects = projects.filter((p) => p.category === view);
+    } else {
+      throw new Error(
+        `#grid の data-view="${view}" は不正です。"overview" か、既存カテゴリ ` +
+        `(${knownCategories.join(', ')}) のいずれかを指定してください。`
+      );
+    }
+
+    targetProjects.forEach((project) => {
+      (project.media || []).forEach((m) => {
+        const figure = document.createElement('figure');
+        figure.className = 'jl-item' + (m.type === 'video' ? ' is-video' : '');
+        figure.dataset.w = m.dataW;
+        figure.dataset.h = m.dataH;
+
+        if (m.type === 'image') {
+          const img = document.createElement('img');
+          img.src = m.thumb;
+          img.width = m.width;
+          img.height = m.height;
+          img.alt = m.alt || '';
+          img.dataset.full = m.full;
+          img.dataset.title = project.title;
+          img.dataset.line1 = project.line1;
+          img.dataset.line2 = project.line2;
+          img.dataset.group = project.id;
+          figure.appendChild(img);
+        } else {
+          const video = document.createElement('video');
+          video.setAttribute('src', m.src);
+          video.setAttribute('muted', '');
+          video.muted = true; // autoplayポリシー対策（属性だけでなくプロパティも設定）
+          video.setAttribute('loop', '');
+          video.setAttribute('playsinline', '');
+          video.setAttribute('autoplay', '');
+          figure.appendChild(video);
+
+          const meta = document.createElement('div');
+          meta.className = 'lb-data';
+          meta.dataset.type = 'video';
+          meta.dataset.full = m.src;
+          meta.dataset.title = project.title;
+          meta.dataset.line1 = project.line1;
+          meta.dataset.line2 = project.line2;
+          meta.dataset.group = project.id;
+          figure.appendChild(meta);
+        }
+
+        gridEl.appendChild(figure);
+      });
+    });
+  }
 
   /* =========================
   1) Justified Layout 設定（レスポンシブ）
@@ -14,6 +113,7 @@
   const container = document.getElementById('grid');
   if (!container) return;
 
+  buildPortfolioGrid(container);
 
   function getRowHeight() {
     const w = window.innerWidth;
@@ -32,7 +132,7 @@
   }
 
   /* =========================
-     2) Overview items 収集（.jl-item 想定）
+     2) Portfolio Grid items 収集（.jl-item 想定）
      - data-w / data-h から aspect ratio を作る
      ========================= */
 
@@ -263,7 +363,7 @@
 
 
 /* =========================================================
-   OVERVIEW SITE (PART 2/4)
+   PORTFOLIO GRID (PART 2/4)
    Lightbox (gm)
    - #grid の .jl-item を起点に、画像/動画を Lightbox 表示
    - 画像は decode() ベースでプリロード＋前後先読み
@@ -295,7 +395,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const gmBg    = gm.querySelector('.gm-backdrop');
 
   /* =========================
-     2) サムネ（Overview items）
+     2) サムネ（Portfolio Grid items）
      ========================= */
 
   const thumbItems = Array.from(document.querySelectorAll('#grid .jl-item'));
@@ -609,12 +709,12 @@ function openAt(index) {
 
 
 /* =========================================================
-   OVERVIEW SITE (PART 3/4)
+   PORTFOLIO GRID (PART 3/4)
    Lightbox (gm)
    ========================================================= */
 
 /* =========================================================
-   OVERVIEW SITE (PART 4/4)
+   PORTFOLIO GRID (PART 4/4)
    Lightbox (gm) - Video Controls
    ========================================================= */
 
@@ -1088,8 +1188,7 @@ function openAt(index) {
   const links = [
     { href: 'index.html',    label: 'overview'  },
     { href: 'editorial.html',label: 'editorial' },
-    //{ href: 'beauty.html',   label: 'BEAUTY'    },//
-    { href: 'video.html',   label: 'advertising'  },
+    { href: 'advertising.html', label: 'advertising'  },
     { href: 'info.html',     label: 'info'      },
     { href: 'mailto:kazuko81617@gmail.com', label: 'contact', external: true }
   ];
