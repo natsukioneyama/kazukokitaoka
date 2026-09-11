@@ -28,11 +28,7 @@ window.PORTFOLIO_PROJECTS = [
       { type: "image", thumb: "thmbs/numero/01/02.webp", full: "img/numero/01/02.webp", alt: "numero",
         width: 269, height: 350, dataW: 269, dataH: 350 },
       { type: "image", thumb: "thmbs/numero/01/03.webp", full: "img/numero/01/03.webp", alt: "numero",
-        width: 268, height: 350, dataW: 268, dataH: 350 },
-      { type: "image", thumb: "thmbs/numero/01/04.webp", full: "img/numero/01/04.webp", alt: "numero",
-        width: 265, height: 350, dataW: 265, dataH: 350 },
-      { type: "image", thumb: "thmbs/numero/01/05.webp", full: "img/numero/01/05.webp", alt: "numero",
-        width: 269, height: 350, dataW: 269, dataH: 350 }
+        width: 268, height: 350, dataW: 268, dataH: 350 }
     ]
   },
   {
@@ -385,7 +381,7 @@ window.PORTFOLIO_PROJECTS = [
       { type: "image", thumb: "thmbs/apartpublications/n.016/01.webp", full: "img/apartpublications/n.016/01.webp", alt: "apartpublications",
         width: 270, height: 350, dataW: 270, dataH: 350 },
       { type: "image", thumb: "thmbs/apartpublications/n.016/02.webp", full: "img/apartpublications/n.016/02.webp", alt: "apartpublications",
-        width: 350, height: 175, dataW: 350, dataH: 175 },
+        width: 247, height: 350, dataW: 247, dataH: 350 },
       { type: "image", thumb: "thmbs/apartpublications/n.016/03.webp", full: "img/apartpublications/n.016/03.webp", alt: "apartpublications",
         width: 249, height: 350, dataW: 249, dataH: 350 },
       { type: "image", thumb: "thmbs/apartpublications/n.016/04.webp", full: "img/apartpublications/n.016/04.webp", alt: "apartpublications",
