@@ -1,5 +1,5 @@
   /* =========================================================
-  PORTFOLIO GRID (PART 1/4)
+  PORTFOLIO GRID (PART 1/3)
   0) Data -> DOM: portfolio-data.js の PORTFOLIO_PROJECTS から
      #grid の data-view に応じた .jl-item を生成する
   1) Justified Layout: items収集 / render / resize
@@ -226,7 +226,7 @@
   function clearGroupHighlight() {
     container.classList.remove('is-group-hover', 'is-group-tap');
     itemElements.forEach((el) => {
-      el.classList.remove('is-in-group', 'tap-armed');
+      el.classList.remove('is-in-group');
     });
   }
 
@@ -284,7 +284,6 @@
         e.stopPropagation();
 
         armedItem = item;
-        item.classList.add('tap-armed');
         setGroupHighlightByKey(key, 'tap');
         return;
       }
@@ -353,7 +352,7 @@
 
 /* =========================================================
    Background scroll lock (shared helper, iOS Safari-safe)
-   - Lightbox の openAt()/closeModal() (両ブロック共通) から呼び出す
+   - Lightbox の openAt()/closeModal() から呼び出す
    ========================================================= */
 let scrollLocked = false;
 let savedScrollY = 0;
@@ -396,12 +395,12 @@ function unlockPageScroll() {
 
 
 /* =========================================================
-   PORTFOLIO GRID (PART 2/4)
+   PORTFOLIO GRID (PART 2/3)
    Lightbox (gm)
    - #grid の .jl-item を起点に、画像/動画を Lightbox 表示
    - 画像は decode() ベースでプリロード＋前後先読み
    - キーボード(ESC/←/→)とスワイプ対応
-   - Lightbox中は body に .lb-open を付けてUI制御可能
+   - 末尾で PART 3/3 の initGmVideoControls() を呼び出す
    ========================================================= */
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -413,7 +412,6 @@ document.addEventListener('DOMContentLoaded', () => {
   const gm = document.getElementById('gm');
   if (!gm) return;
 
-  const gmFrame = gm.querySelector('.gm-frame');
   const gmImg   = gm.querySelector('#gmImage');
   const gmVWrap = gm.querySelector('.gm-video-wrap');
   const gmVideo = gm.querySelector('#gmVideo');
@@ -517,7 +515,6 @@ function showImage(img) {
     gmImg.style.pointerEvents = ''; // 追加：画像はクリック可能に戻す
     gmImg.src = full;
     gmImg.hidden = false;
-    gmImg.classList.add('ready');
   };
 
   if (record && record.promise) record.promise.then(apply);
@@ -529,7 +526,6 @@ function showVideo(meta) {
   if (!src) return;
 
   gmImg.hidden = true;
-  gmImg.classList.remove('ready');
   gmImg.style.pointerEvents = 'none';
 
   gmVWrap.hidden = false;
@@ -565,7 +561,6 @@ function showVideo(meta) {
 function resetMedia() {
   // image reset
   gmImg.src = '';
-  gmImg.classList.remove('ready');
   gmImg.hidden = false;
 
   // 追加：動画で殺した pointerEvents を必ず戻す
@@ -588,7 +583,6 @@ function closeModal() {
 
   gm.setAttribute('aria-hidden', 'true');
   resetMedia();
-  document.body.classList.remove('lb-open');
 
   const controls = gm.querySelector('.sv-controls');
   if (controls) {
@@ -609,7 +603,6 @@ function openAt(index) {
 
   // ① 先に表示（レイアウトツリーに乗せる）
   gm.setAttribute('aria-hidden', 'false');
-  document.body.classList.add('lb-open');
 
   // ② 次のフレームで中身を差し替える（Safari安定策）
   requestAnimationFrame(() => {
@@ -736,6 +729,11 @@ function openAt(index) {
     }
   }, { passive: false });
 
+  /* =========================
+     12) 動画カスタムコントロール初期化
+     ========================= */
+  initGmVideoControls();
+
 });
 
 
@@ -743,16 +741,10 @@ function openAt(index) {
 
 
 
-
-
 /* =========================================================
-   PORTFOLIO GRID (PART 3/4)
-   Lightbox (gm)
-   ========================================================= */
-
-/* =========================================================
-   PORTFOLIO GRID (PART 4/4)
+   PORTFOLIO GRID (PART 3/3)
    Lightbox (gm) - Video Controls
+   - PART 2/3 の DOMContentLoaded 内から initGmVideoControls() で呼び出される
    ========================================================= */
 
 function initGmVideoControls() {
@@ -942,273 +934,6 @@ function initGmVideoControls() {
     controls.classList.remove('is-visible');
   }
 }
-
-document.addEventListener('DOMContentLoaded', () => {
-
-  const gm = document.getElementById('gm');
-  if (!gm) return;
-
-  const gmImg   = gm.querySelector('#gmImage');
-  const gmVWrap = gm.querySelector('.gm-video-wrap');
-  const gmVideo = gm.querySelector('#gmVideo');
-
-  const gmTitle = gm.querySelector('.gm-ttl');
-  const gmSub   = gm.querySelector('.gm-sub');
-  const gmCount = gm.querySelector('.gm-counter');
-
-  const gmClose = gm.querySelector('.gm-close');
-  const gmPrev  = gm.querySelector('.gm-prev');
-  const gmNext  = gm.querySelector('.gm-next');
-  const gmBg    = gm.querySelector('.gm-backdrop');
-
-  const thumbItems = Array.from(document.querySelectorAll('#grid .jl-item'));
-  if (!thumbItems.length) return;
-
-  let currentIndex = 0;
-  const imgCache = new Map();
-
-  function preloadFullImage(full) {
-    if (!full) return null;
-
-    const cached = imgCache.get(full);
-    if (cached) return cached;
-
-    const image = new Image();
-    image.src = full;
-
-    let promise;
-    if (image.decode) {
-      promise = image.decode().catch(() => {});
-    } else {
-      promise = new Promise((resolve) => {
-        image.onload  = () => resolve();
-        image.onerror = () => resolve();
-      });
-    }
-
-    const record = { image, promise };
-    imgCache.set(full, record);
-    return record;
-  }
-
-  function preloadAround(index) {
-    const targets = [index + 1, index - 1, index + 2, index - 2];
-
-    targets.forEach((i) => {
-      const safeIndex = (i + thumbItems.length) % thumbItems.length;
-      const item = thumbItems[safeIndex];
-      if (!item || item.classList.contains('is-video')) return;
-
-      const img = item.querySelector('img');
-      if (!img) return;
-
-      const full = img.dataset.full || img.src;
-      preloadFullImage(full);
-    });
-  }
-
-  function updateCaption(img, meta) {
-    const t  = (img && img.dataset.title) || (meta && meta.dataset.title) || '';
-    const l1 = (img && img.dataset.line1) || (meta && meta.dataset.line1) || '';
-    const l2 = (img && img.dataset.line2) || (meta && meta.dataset.line2) || '';
-
-    gmTitle.textContent = t;
-    gmSub.textContent   = [l1, l2].filter(Boolean).join(' / ');
-  }
-
-  function updateCounter() {
-    gmCount.textContent = `${currentIndex + 1} / ${thumbItems.length}`;
-  }
-
-  function showImage(img) {
-    const full = img.dataset.full || img.src;
-    const record = preloadFullImage(full);
-
-    const apply = () => {
-      gmImg.src = full;
-      gmImg.hidden = false;
-      gmImg.classList.add('ready');
-    };
-
-    if (record && record.promise) record.promise.then(apply);
-    else apply();
-  }
-
-  function showVideo(meta) {
-    const src = meta.dataset.full;
-    if (!src) return;
-
-    gmImg.hidden = true;
-    gmImg.classList.remove('ready');
-    gmImg.style.pointerEvents = 'none';
-
-    gmVWrap.hidden = false;
-    gmVideo.hidden = false;
-    gmVWrap.classList.remove('is-ready');
-
-    gmVideo.loop = true;
-
-    if (gmVideo.src !== src) gmVideo.src = src;
-
-    gmVideo.currentTime = 0;
-
-    const onFirstFrame = () => {
-      gmVWrap.classList.add('is-ready');
-      gmVideo.removeEventListener('loadeddata', onFirstFrame);
-    };
-    gmVideo.addEventListener('loadeddata', onFirstFrame);
-
-    const p = gmVideo.play();
-    if (p && p.then) p.catch(() => {});
-  }
-
-  function resetMedia() {
-    gmImg.src = '';
-    gmImg.classList.remove('ready');
-    gmImg.hidden = false;
-
-    gmVideo.pause();
-    gmVideo.removeAttribute('src');
-    gmVideo.currentTime = 0;
-    gmVideo.hidden = true;
-    gmVWrap.hidden = true;
-  }
-
-  function closeModal() {
-  unlockPageScroll();
-
-  gm.setAttribute('aria-hidden', 'true');
-  resetMedia();
-  document.body.classList.remove('lb-open');
-
-  const controls = gm.querySelector('.sv-controls');
-  if (controls) {
-    controls.classList.remove('is-visible');
-    controls.style.opacity = '';
-    controls.style.pointerEvents = '';
-  }
-}
-
-function openAt(index) {
-  lockPageScroll();
-
-  currentIndex = (index + thumbItems.length) % thumbItems.length;
-
-  const item = thumbItems[currentIndex];
-  const img  = item.querySelector('img');
-  const meta = item.querySelector('.lb-data');
-
-  // ① 先に表示（レイアウトツリーに乗せる）
-  gm.setAttribute('aria-hidden', 'false');
-  document.body.classList.add('lb-open');
-
-  // ② 次のフレームで中身を差し替える（Safari安定策）
-  requestAnimationFrame(() => {
-    resetMedia();
-
-    if (meta && meta.dataset.type === 'video') {
-      showVideo(meta);
-    } else if (img) {
-      showImage(img);
-    }
-
-    updateCaption(img, meta);
-    updateCounter();
-    preloadAround(currentIndex);
-  });
-}
-
-
-  thumbItems.forEach((item, index) => {
-    item.addEventListener('click', (e) => {
-      e.preventDefault();
-      openAt(index);
-    });
-  });
-
-  gmPrev.addEventListener('click', (e) => {
-    e.stopPropagation();
-    openAt(currentIndex - 1);
-  });
-
-  gmNext.addEventListener('click', (e) => {
-    e.stopPropagation();
-    openAt(currentIndex + 1);
-  });
-
-  gmClose.addEventListener('click', (e) => {
-    e.stopPropagation();
-    closeModal();
-  });
-
-  gmBg.addEventListener('click', () => {
-    closeModal();
-  });
-
-  window.addEventListener('keydown', (e) => {
-    if (gm.getAttribute('aria-hidden') === 'true') return;
-
-    if (e.key === 'Escape') {
-      e.preventDefault();
-      closeModal();
-    } else if (e.key === 'ArrowRight') {
-      e.preventDefault();
-      openAt(currentIndex + 1);
-    } else if (e.key === 'ArrowLeft') {
-      e.preventDefault();
-      openAt(currentIndex - 1);
-    }
-  });
-
-  let touchStartX = 0;
-  let touchStartY = 0;
-  let touchOnControls = false;
-
-  gm.addEventListener('touchstart', (e) => {
-    if (gm.getAttribute('aria-hidden') === 'true') return;
-
-    const t = e.touches[0];
-    if (!t) return;
-
-    const target = e.target;
-
-    if (target.closest('.gm-video-wrap') || target.closest('.sv-controls')) {
-      touchOnControls = true;
-      return;
-    }
-
-    touchOnControls = false;
-    touchStartX = t.clientX;
-    touchStartY = t.clientY;
-  }, { passive: true });
-
-  gm.addEventListener('touchend', (e) => {
-    if (gm.getAttribute('aria-hidden') === 'true') return;
-
-    if (touchOnControls) {
-      touchOnControls = false;
-      return;
-    }
-
-    const t = e.changedTouches[0];
-    if (!t) return;
-
-    const dx = t.clientX - touchStartX;
-    const dy = t.clientY - touchStartY;
-
-    if (Math.abs(dx) > 50 && Math.abs(dy) < 40) {
-      e.preventDefault();
-      if (dx < 0) openAt(currentIndex + 1);
-      else openAt(currentIndex - 1);
-    }
-  }, { passive: false });
-
-  // ここで「1回だけ」初期化
-  initGmVideoControls();
-});
-
-
-
 
 
 
